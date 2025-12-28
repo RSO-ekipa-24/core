@@ -18,8 +18,10 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TagResource {
+
     @Inject
     TagService tagService;
+
     @Inject
     UserService userService;
 

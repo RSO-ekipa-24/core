@@ -38,9 +38,6 @@ public class Property extends BaseEntity {
     )
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Lease> leases = new HashSet<>();
-
     @NotNull
     public Long getId() {
         return id;
@@ -113,10 +110,5 @@ public class Property extends BaseEntity {
         if (tags.remove(tag)) {
             tag.getProperties().remove(this);
         }
-    }
-
-    @NotNull
-    public Set<Lease> getLeases() {
-        return leases;
     }
 }

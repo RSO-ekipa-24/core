@@ -105,7 +105,10 @@ public class UserResource {
                 keycloakId
         );
 
-        return userService.createUser(request);
+        UserResponse userResponse = userService.createUser(request);
+        userService.publishUserCreated(userResponse);
+
+        return userResponse;
     }
 
     /**

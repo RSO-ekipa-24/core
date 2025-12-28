@@ -3,12 +3,10 @@ package essa.service.user;
 import essa.dto.user.UserCreateRequest;
 import essa.dto.user.UserInternalResponse;
 import essa.dto.user.UserResponse;
-import essa.entity.LeaseInvitation;
 import essa.entity.User;
 import essa.exception.EntityNotFoundException;
 import essa.keycloak.KeycloakAdminProvider;
 import essa.keycloak.KeycloakUserResponse;
-import essa.repository.leaseinvitation.LeaseInvitationRepository;
 import essa.repository.user.UserRepository;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,6 +16,8 @@ import jakarta.ws.rs.NotFoundException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.UserRepresentation;
+import essa.messaging.UserCreatedEvent;
+import essa.messaging.UserEventPublisher;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,12 +32,11 @@ public class UserService {
     UserRepository userRepository;
 
     @Inject
-    LeaseInvitationRepository leaseInvitationRepository;
+    UserEventPublisher userEventPublisher;
 
     @Inject
     @ConfigProperty(name = "oidc-client.realm")
     String realm;
-
 
     /**
      * Get all users.
@@ -103,16 +102,6 @@ public class UserService {
         user.setEmail(request.getEmail());
         userRepository.persist(user);
 
-        // find any PENDING invitations for this email
-        List<LeaseInvitation> leaseInvitations = leaseInvitationRepository.findPendingByEmail(user.getEmail());
-
-        // attach the user and send notification
-        for (LeaseInvitation leaseInvitation : leaseInvitations) {
-            leaseInvitation.setInvitedUser(user);
-            leaseInvitationRepository.update(leaseInvitation);
-            // send notification
-        }
-
         return UserResponse.fromEntity(user);
     }
 
@@ -159,4 +148,17 @@ public class UserService {
                 userRepresentation.getEmail()
         );
     }
+
+    /**
+     * Publishes user created.
+     *
+     * @param userResponse user
+     */
+    public void publishUserCreated(@NotNull UserResponse userResponse) {
+        userEventPublisher.publishUserCreated(new UserCreatedEvent(
+                userResponse.getUsername(),
+                userResponse.getEmail()
+        ));
+    }
+
 }

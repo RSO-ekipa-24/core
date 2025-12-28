@@ -27,9 +27,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Property> properties;
 
-    @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Lease> tenantLeases;
-
     public Long getId() {
         return id;
     }
@@ -66,6 +63,4 @@ public class User {
     public List<Property> getProperties() {
         return properties;
     }
-
-    public List<Lease> getTenantLeases() { return tenantLeases; }
 }
