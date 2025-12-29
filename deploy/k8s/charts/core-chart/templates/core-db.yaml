@@ -1,0 +1,59 @@
+### Core db deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.core.postgres.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.core.postgres.service.port }}
+      targetPort: {{ .Values.core.postgres.service.port }}
+  selector:
+    app: {{ .Values.core.postgres.name }}
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.core.postgres.name }}
+  labels:
+    app: {{ .Values.core.postgres.name }}
+spec:
+  serviceName: {{ .Values.core.postgres.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.core.postgres.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.core.postgres.name }}
+    spec:
+      containers:
+        - name: {{ .Values.core.postgres.name }}
+          image: {{ .Values.core.postgres.image }}
+          ports:
+            - containerPort: {{ .Values.core.postgres.service.port }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.core.postgres.db.databaseName }}
+            - name: POSTGRES_USER
+              value: {{ .Values.core.postgres.db.username }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.core.postgres.secret.name }}
+                  key: {{ .Values.core.postgres.secret.dbPasswordKey }}
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: db-data
+      spec:
+        accessModes:
+          - {{ .Values.core.postgres.persistence.accessMode }}
+        resources:
+          requests:
+            storage: 5Gi
