@@ -50,12 +50,12 @@ spec:
             - name: QUARKUS_OIDC_APPLICATION_TYPE
               value: "service"
 
-            - name: QUARKUS_OIDC_CLIENT_ENABLED
-              value: "false"
+            - name: QUARKUS_OIDC_CLIENT_AUTH_SERVER_URL
+              value: "https://keycloak.myproperty-essa.com/realms/quarkus"
 
             # Internal URL for Backend-to-Backend communication
             - name: QUARKUS_OIDC_AUTH_SERVER_URL
-              value: "http://keycloak-service:8080/realms/quarkus"
+              value: "https://keycloak.myproperty-essa.com/realms/quarkus"
 
             # Must match the Client ID you created in Keycloak
             - name: QUARKUS_OIDC_CLIENT_ID
@@ -72,25 +72,27 @@ spec:
             - name: QUARKUS_OIDC_TOKEN_ISSUER
               value: "https://keycloak.myproperty-essa.com/realms/quarkus"
 
+            - name: QUARKUS_OIDC_CONNECTION_TIMEOUT
+              value: "30s"
+
           # health checks
           startupProbe:
             httpGet:
               path: /q/health/started
               port: 6969
-            initialDelaySeconds: 5
-            failureThreshold: 10
+            initialDelaySeconds: 15
+            failureThreshold: 20
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
               path: /q/health/live
               port: 6969
-            initialDelaySeconds: 0
+            initialDelaySeconds: 20
             periodSeconds: 30
 
           readinessProbe:
             httpGet:
               path: /q/health/ready
               port: 6969
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 20
