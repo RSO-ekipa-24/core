@@ -117,23 +117,34 @@ gcloud auth configure-docker europe-central2-docker.pkg.dev
 
 #### Build and push the image to Google Registry:
 
-1. Package the app - This generates the application files inside the target/ folder.
+
+First, you need to commit and push all the changes u made to Git!
+
+Then extract your commit hash:
 
 ```bash
-./mvnw package -Dquarkus.container-image.build=false -DskipTests
+GIT_HASH=$(git rev-parse --short HEAD)
+```
+and `echo` it and confirm it matches the hash on GitHub UI.
+
+1. Package the app - This generates the application files inside the target/ folder.
+
+
+```bash
+./mvnw clean package -Dquarkus.container-image.build=false -DskipTests
 ```
 
 if it fails, you may need to run `chmod +x mvnw`
 
 
-2. Build the local docker image and tag it for Google registry
+2. Build the local docker image and tag it for Google registry - we will tag it with the commit hash for easier rollbacks and to keep track.
 
 ```bash
-docker build -f src/main/docker/Dockerfile.jvm -t europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:v1 .
+docker build -f src/main/docker/Dockerfile.jvm -t europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:$GIT_HASH .
 ```
 
 3. Push to the cloud:
 
 ```bash
-docker push europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:v1
+docker push europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:$GIT_HASH
 ```
