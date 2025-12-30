@@ -43,6 +43,12 @@ jobs:
       - name: Build package (skip tests for now as we don't have them yet)
         run: mvn -B package -DskipTests
 
+      - name: Upload Maven target
+        uses: actions/upload-artifact@v3
+        with:
+          name: maven-target
+          path: target/
+
   docker-build-push:
     name: Build Docker & Push
     needs: build
@@ -54,6 +60,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download Maven build
+        uses: actions/download-artifact@v3
+        with:
+          name: maven-target
 
       - id: auth
         name: Authenticate to GCP
