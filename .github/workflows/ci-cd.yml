@@ -72,6 +72,7 @@ jobs:
         name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
+          token_format: 'access_token'
           workload_identity_provider: 'projects/881557273122/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: github-actions-account@artful-reactor-351917.iam.gserviceaccount.com
 
