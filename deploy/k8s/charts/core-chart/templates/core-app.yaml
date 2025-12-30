@@ -1,0 +1,98 @@
+# Core app deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.core.service.serviceName }}
+spec:
+  selector:
+    app: {{ .Values.core.service.serviceName }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.core.service.port }}
+      targetPort: {{ .Values.core.service.targetPort }}
+  type: {{ .Values.core.service.type }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.core.deployment.name }}
+spec:
+  replicas: {{ .Values.core.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.core.deployment.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.core.deployment.name }}
+    spec:
+      containers:
+        - name: {{ .Values.core.deployment.name }}
+          image: "{{ .Values.core.deployment.image.repository }}:{{ .Values.core.deployment.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.core.deployment.image.containerPort }}
+          env:
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: {{ .Values.core.postgres.db.databaseUrl }}
+
+            - name: QUARKUS_DATASOURCE_USERNAME
+              value: {{ .Values.core.postgres.db.username }}
+
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.core.postgres.secret.name }}
+                  key: {{ .Values.core.postgres.secret.dbPasswordKey }}
+
+            # Tell Quarkus this is a pure API (Service)
+            - name: QUARKUS_OIDC_APPLICATION_TYPE
+              value: "service"
+
+            - name: QUARKUS_OIDC_CLIENT_AUTH_SERVER_URL
+              value: "https://keycloak.myproperty-essa.com/realms/quarkus"
+
+            # Internal URL for Backend-to-Backend communication
+            - name: QUARKUS_OIDC_AUTH_SERVER_URL
+              value: "https://keycloak.myproperty-essa.com/realms/quarkus"
+
+            # Must match the Client ID you created in Keycloak
+            - name: QUARKUS_OIDC_CLIENT_ID
+              value: "quarkus"
+
+            # Inject the secret you just created from core-secrets
+            - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.core.postgres.secret.name}}
+                  key: {{ .Values.core.postgres.secret.keycloakClientSecret}}
+
+            # Handling the "Public vs Internal" URL conflict
+            - name: QUARKUS_OIDC_TOKEN_ISSUER
+              value: "https://keycloak.myproperty-essa.com/realms/quarkus"
+
+            - name: QUARKUS_OIDC_CONNECTION_TIMEOUT
+              value: "30s"
+
+          # health checks
+          startupProbe:
+            httpGet:
+              path: /q/health/started
+              port: 6969
+            initialDelaySeconds: 15
+            failureThreshold: 20
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 6969
+            initialDelaySeconds: 20
+            periodSeconds: 30
+
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 6969
+            initialDelaySeconds: 20

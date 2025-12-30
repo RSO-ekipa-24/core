@@ -1,0 +1,37 @@
+core:
+  deployment:
+    replicaCount: 1
+    name: core-service
+
+    image:
+      repository: europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service
+      tag: "latest"
+      pullPolicy: IfNotPresent
+      containerPort: 6969
+
+  service:
+    serviceName: core-service
+    type: ClusterIP
+    port: 8080
+    targetPort: 6969
+
+
+  postgres:
+    name: core-db
+    image: postgres:16
+    service:
+      port: 5432
+    db:
+      databaseName: core_db
+      username: core_user
+      databaseUrl: "jdbc:postgresql://core-db:5432/core_db"
+    secret:
+      name: core-secrets
+      dbPasswordKey: CORE_DB_PASSWORD
+      keycloakClientSecret: KEYCLOAK_CLIENT_SECRET
+    persistence:
+      enabled: true
+      storage: 5Gi
+      accessMode: ReadWriteOnce
+      mountPath: /var/lib/postgresql/data
+      subPath: pgdata

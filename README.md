@@ -88,3 +88,63 @@ Easily start your REST Web Services
 - For information on other endpoints (what they require, what they return) we need to have a space to document them all. Find one and contact me so I can write it there, I dont think that belongs here.
 
 Yours truly, Antišek.
+
+---
+
+## Publish images to Google Artifact Registry
+
+### 🛠 Prerequisites
+
+Before running any commands, ensure you have the following installed:
+* **Java 17+** (to compile the code)
+* **Docker Desktop** (must be running)
+* **Google Cloud CLI (gcloud)** * **Permissions**: Access to the Google Project `artful-reactor-351917`
+
+---
+
+Run these once to connect your computer to the Google Cloud project (if you didn't do this by now)
+
+```bash
+gcloud auth login
+gcloud config set project artful-reactor-351917
+```
+
+Configure docker authentication (this allows docker to talk to our private Google registry):
+
+```bash
+gcloud auth configure-docker europe-central2-docker.pkg.dev
+```
+
+#### Build and push the image to Google Registry:
+
+
+First, you need to commit and push all the changes u made to Git!
+
+Then extract your commit hash:
+
+```bash
+GIT_HASH=$(git rev-parse --short HEAD)
+```
+and `echo` it and confirm it matches the hash on GitHub UI.
+
+1. Package the app - This generates the application files inside the target/ folder.
+
+
+```bash
+./mvnw clean package -Dquarkus.container-image.build=false -DskipTests
+```
+
+if it fails, you may need to run `chmod +x mvnw`
+
+
+2. Build the local docker image and tag it for Google registry - we will tag it with the commit hash for easier rollbacks and to keep track.
+
+```bash
+docker build -f src/main/docker/Dockerfile.jvm -t europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:$GIT_HASH .
+```
+
+3. Push to the cloud:
+
+```bash
+docker push europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:$GIT_HASH
+```
