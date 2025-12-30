@@ -66,7 +66,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: quarkus-artifacts
-          path: target/quarkus/app
+          path: target/quarkus-app/
 
       - id: auth
         name: Authenticate to GCP
