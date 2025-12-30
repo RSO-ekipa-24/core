@@ -75,11 +75,6 @@ jobs:
           workload_identity_provider: 'projects/881557273122/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           service_account: github-actions-account@artful-reactor-351917.iam.gserviceaccount.com
 
-      - name: Verify GCP identity
-        run: |
-          gcloud auth list
-          gcloud config list account
-
       - name: Configure Docker for GAR
         run: |
           gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
