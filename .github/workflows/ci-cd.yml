@@ -40,14 +40,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build package (skip tests for now as we don't have them yet)
-        run: mvn -B package -DskipTests
+      # (skip tests for now as we don't have them yet)
+      - name: Build package
+        run: ./mvnw -B package -DskipTests
 
-      - name: Upload Maven target
-        uses: actions/upload-artifact@v3
+      - name: Upload Quarkus app artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: maven-target
-          path: target/
+          name: quarkus-artifacts
+          path: target/quarkus-app/
 
   docker-build-push:
     name: Build Docker & Push
@@ -61,10 +62,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Maven build
-        uses: actions/download-artifact@v3
+      - name: Download Quarkus app
+        uses: actions/download-artifact@v4
         with:
-          name: maven-target
+          name: quarkus-artifacts
+          path: target/quarkus/app
 
       - id: auth
         name: Authenticate to GCP
