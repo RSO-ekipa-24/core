@@ -1,0 +1,10 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: core-backend-config
+  namespace: essa-project
+spec:
+  healthCheck:
+    type: HTTP
+    port: 8080
+    requestPath: q/health/ready
