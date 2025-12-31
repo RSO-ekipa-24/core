@@ -7,4 +7,4 @@ spec:
   healthCheck:
     type: HTTP
     port: 8080
-    requestPath: q/health/ready
+    requestPath: /q/health/ready
