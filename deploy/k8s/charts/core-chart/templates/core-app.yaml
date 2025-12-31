@@ -5,6 +5,7 @@ metadata:
   name: {{ .Values.core.service.serviceName }}
   annotations:
     cloud.google.com/backend-config: '{"default": "core-backend-config"}'
+    cloud.google.com/neg: '{"ingress": true}'
 spec:
   selector:
     app: {{ .Values.core.service.serviceName }}
