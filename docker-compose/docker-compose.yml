@@ -60,6 +60,8 @@ services:
       - keycloak
       - redpanda
       - notifications
+    env_file:
+      - .env
     environment:
       QUARKUS_PROFILE: prod
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/realms/quarkus

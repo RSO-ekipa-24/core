@@ -17,6 +17,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.UserRepresentation;
 
@@ -25,6 +34,7 @@ import java.util.List;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "BearerAuth")
 public class UserResource {
 
     @Inject
@@ -53,6 +63,28 @@ public class UserResource {
      */
     @GET
     @NotNull
+    @Operation(
+            summary = "Get authenticated user",
+            description = "Returns the user for the provided access token (subject)."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "User",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserResponse.class),
+                            examples = @ExampleObject(
+                                    name = "User",
+                                    value = "{\"username\":\"john\",\"email\":\"john@example.com\"}"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "User not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public UserResponse get() {
         return userService.getUserByKeycloakId(jwt.getSubject());
     }
@@ -66,6 +98,30 @@ public class UserResource {
     @POST
     @Path("/authenticate")
     @NotNull
+    @Operation(
+            summary = "Authenticate/register user",
+            description = "Registers the user in the application database if missing and returns the user. Uses token claims (subject, preferred_username, email)."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Authenticated/registered user",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserResponse.class),
+                            examples = @ExampleObject(
+                                    name = "User",
+                                    value = "{\"username\":\"john\",\"email\":\"john@example.com\"}"
+                            )
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "401",
+                    description = "Invalid token: missing subject/username/email"
+            ),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public UserResponse authenticateUser() {
         // Get Keycloak ID (subject) from token
         String keycloakId = jwt.getSubject();
@@ -115,6 +171,17 @@ public class UserResource {
      * Delete user by id (SHOULD BE CALLED BEFORE DELETING ON KEYCLOAK).
      */
     @DELETE
+    @Operation(
+            summary = "Delete authenticated user",
+            description = "Deletes the authenticated user from the application database (should be called before deleting the user in Keycloak)."
+    )
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "Deleted"),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "User not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public void delete() {
         userService.deleteUser(userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId());
     }
@@ -127,6 +194,27 @@ public class UserResource {
     @GET
     @Path("/property-groups")
     @NotNull
+    @Operation(
+            summary = "Get authenticated user's property groups",
+            description = "Returns all property groups for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "List of property groups",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyGroupResponse.class, type = SchemaType.ARRAY),
+                            examples = @ExampleObject(
+                                    name = "PropertyGroups",
+                                    value = "[{\"id\":5,\"name\":\"Favorites\"}]"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public List<PropertyGroupResponse> getUserPropertyGroups() {
         return propertyGroupService.getUserPropertyGroups(userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId());
     }
@@ -139,6 +227,27 @@ public class UserResource {
     @GET
     @Path("/properties")
     @NotNull
+    @Operation(
+            summary = "Get authenticated user's properties",
+            description = "Returns all properties for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "List of properties",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class, type = SchemaType.ARRAY),
+                            examples = @ExampleObject(
+                                    name = "Properties",
+                                    value = "[{\"id\":10,\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"},{\"id\":2,\"name\":\"Rent\",\"color\":\"#00AAFF\"}],\"propertyGroupId\":5}]"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public List<PropertyResponse> getUserProperties() {
         return propertyService.getUserProperties(userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId());
     }
@@ -147,12 +256,54 @@ public class UserResource {
     @GET
     @Path("/keycloak/{username}")
     @NotNull
-    public KeycloakUserResponse getKeycloakUser(@PathParam("username") @NotNull String username) {
+    @Operation(
+            summary = "Get Keycloak user by username (testing)",
+            description = "Testing endpoint that queries Keycloak for a user by username."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Keycloak user",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = KeycloakUserResponse.class)
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "User not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public KeycloakUserResponse getKeycloakUser(
+            @Parameter(description = "Keycloak username", example = "john", required = true)
+            @PathParam("username") @NotNull String username
+    ) {
         return userService.getKeycloakUser(username);
     }
 
     @GET
     @Path("/me")
+    @Operation(
+            summary = "Get current Keycloak user (admin client)",
+            description = "Returns the current user from Keycloak using the Keycloak admin client."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "User",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserResponse.class),
+                            examples = @ExampleObject(
+                                    name = "User",
+                                    value = "{\"username\":\"john\",\"email\":\"john@example.com\"}"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public UserResponse getCurrentUser() {
         String userId = jwt.getSubject();
         try (Keycloak keycloak = keycloakAdminProvider.getKeycloakClient()) {

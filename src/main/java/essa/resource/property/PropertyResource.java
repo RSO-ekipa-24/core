@@ -11,12 +11,22 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
 @Path("/properties")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "BearerAuth")
 public class PropertyResource {
 
     private final PropertyService propertyService;
@@ -39,7 +49,32 @@ public class PropertyResource {
     @GET
     @Path("/{userId}")
     @NotNull
-    public List<PropertyResponse> getUserProperties(@PathParam("userId") Long userId) {
+    @Operation(
+            summary = "Get all properties for a user",
+            description = "Returns all properties owned by the given user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "List of properties",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class, type = SchemaType.ARRAY),
+                            examples = @ExampleObject(
+                                    name = "PropertiesList",
+                                    value = "[{\"id\":10,\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"},{\"id\":2,\"name\":\"Rent\",\"color\":\"#00AAFF\"}],\"propertyGroupId\":5}]"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "User not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public List<PropertyResponse> getUserProperties(
+            @Parameter(description = "User id", example = "1", required = true)
+            @PathParam("userId") Long userId
+    ) {
         return propertyService.getUserProperties(userId);
     }
 
@@ -51,7 +86,32 @@ public class PropertyResource {
      */
     @GET
     @Path("/tag/{tagName}")
-    public List<PropertyResponse> getPropertiesByTag(@PathParam("tagName") String tagName) {
+    @Operation(
+            summary = "Get properties by tag",
+            description = "Returns properties for the authenticated user filtered by tag name."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "List of properties",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class, type = SchemaType.ARRAY),
+                            examples = @ExampleObject(
+                                    name = "PropertiesByTag",
+                                    value = "[{\"id\":10,\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"}],\"propertyGroupId\":5}]"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid tag name"),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public List<PropertyResponse> getPropertiesByTag(
+            @Parameter(description = "Tag name", example = "Apartment", required = true)
+            @PathParam("tagName") String tagName
+    ) {
         Long userId = userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId();
         return propertyService.getByTag(userId, tagName);
     }
@@ -63,9 +123,34 @@ public class PropertyResource {
      * @return PropertyResponse
      */
     @GET
-    @Path("/{id}")
+    @Path("/property/{id}")
     @NotNull
-    public PropertyResponse getById(@PathParam("id") @NotNull Long id) {
+    @Operation(
+            summary = "Get property by id",
+            description = "Returns a single property by id for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Property",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Property",
+                                    value = "{\"id\":10,\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"},{\"id\":2,\"name\":\"Rent\",\"color\":\"#00AAFF\"}],\"propertyGroupId\":5}"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "Property not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public PropertyResponse getById(
+            @Parameter(description = "Property id", example = "10", required = true)
+            @PathParam("id") @NotNull Long id
+    ) {
         Long userId = userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId();
         return propertyService.getPropertyById(id, userId);
     }
@@ -78,7 +163,44 @@ public class PropertyResource {
      */
     @POST
     @NotNull
-    public PropertyResponse create(@NotNull @Valid PropertyCreateRequest propertyCreateRequest) {
+    @Operation(
+            summary = "Create property",
+            description = "Creates a new property for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Created property",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class),
+                            examples = @ExampleObject(
+                                    name = "CreatedProperty",
+                                    value = "{\"id\":10,\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"},{\"id\":2,\"name\":\"Rent\",\"color\":\"#00AAFF\"}],\"propertyGroupId\":5}"
+                            )
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "400",
+                    description = "Validation error (e.g., name/description length, missing tag list, invalid property group id)"
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public PropertyResponse create(
+            @NotNull
+            @Valid
+            @Parameter(
+                    description = "Property create payload",
+                    required = true,
+                    examples = @ExampleObject(
+                            name = "CreateRequest",
+                            value = "{\"name\":\"My apartment\",\"description\":\"City center flat\",\"tags\":[1,2],\"propertyGroupId\":5}"
+                    )
+            )
+            PropertyCreateRequest propertyCreateRequest
+    ) {
         propertyCreateRequest.setUserId(userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId());
         return propertyService.createProperty(propertyCreateRequest);
     }
@@ -91,7 +213,45 @@ public class PropertyResource {
      */
     @PUT
     @NotNull
-    public PropertyResponse update(@NotNull @Valid PropertyUpdateRequest propertyUpdateRequest) {
+    @Operation(
+            summary = "Update property",
+            description = "Updates an existing property for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Updated property",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class),
+                            examples = @ExampleObject(
+                                    name = "UpdatedProperty",
+                                    value = "{\"id\":10,\"name\":\"My apartment (updated)\",\"description\":\"City center flat\",\"tags\":[{\"id\":1,\"name\":\"Apartment\",\"color\":\"#FFAA00\"},{\"id\":2,\"name\":\"Rent\",\"color\":\"#00AAFF\"}],\"propertyGroupId\":5}"
+                            )
+                    )
+            ),
+            @APIResponse(
+                    responseCode = "400",
+                    description = "Validation error (e.g., invalid property id, missing tag list, name/description length)"
+            ),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "Property not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public PropertyResponse update(
+            @NotNull
+            @Valid
+            @Parameter(
+                    description = "Property update payload",
+                    required = true,
+                    examples = @ExampleObject(
+                            name = "UpdateRequest",
+                            value = "{\"id\":10,\"name\":\"My apartment (updated)\",\"description\":\"City center flat\",\"tags\":[1,2],\"propertyGroupId\":5}"
+                    )
+            )
+            PropertyUpdateRequest propertyUpdateRequest
+    ) {
         propertyUpdateRequest.setUserId(userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId());
         return propertyService.updateProperty(propertyUpdateRequest);
     }
@@ -103,7 +263,21 @@ public class PropertyResource {
      */
     @DELETE
     @Path("/{id}")
-    public void delete(@PathParam("id") @NotNull Long id) {
+    @Operation(
+            summary = "Delete property",
+            description = "Deletes a property by id for the authenticated user."
+    )
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "Deleted"),
+            @APIResponse(responseCode = "401", description = "Missing/invalid token"),
+            @APIResponse(responseCode = "403", description = "Forbidden"),
+            @APIResponse(responseCode = "404", description = "Property not found"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public void delete(
+            @Parameter(description = "Property id", example = "10", required = true)
+            @PathParam("id") @NotNull Long id
+    ) {
         Long userId = userService.getUserByKeycloakIdInternal(jwt.getSubject()).getId();
         propertyService.deleteProperty(id, userId);
     }

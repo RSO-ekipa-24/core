@@ -18,12 +18,16 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.UserRepresentation;
 import essa.messaging.UserCreatedEvent;
 import essa.messaging.UserEventPublisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class UserService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Inject
     KeycloakAdminProvider keycloakAdminProvider;
@@ -155,10 +159,17 @@ public class UserService {
      * @param userResponse user
      */
     public void publishUserCreated(@NotNull UserResponse userResponse) {
-        userEventPublisher.publishUserCreated(new UserCreatedEvent(
+        UserCreatedEvent event = new UserCreatedEvent(
                 userResponse.getUsername(),
                 userResponse.getEmail()
-        ));
+        );
+
+        userEventPublisher.publishUserCreated(event)
+                .subscribe().with(
+                        ignored -> { },
+                        failure -> LOGGER.warn("Failed to publish UserCreatedEvent (ignored).", failure)
+                );
     }
+
 
 }
