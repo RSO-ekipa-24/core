@@ -43,6 +43,8 @@ keycloak:
     KC_HOSTNAME: keycloak.myproperty-essa.com
     KC_PROXY_ADDRESS_FORWARDING: "true"
     KC_HTTP_ENABLED: "true"
+    KC_HOSTNAME_STRICT: "true"
+    KC_HOSTNAME_STRICT_HTTPS: "true"
 
   # --- Realm Import ConfigMap Name ---
   realm:
