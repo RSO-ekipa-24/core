@@ -43,6 +43,37 @@ public class PropertyResource {
     /**
      * Get all properties.
      *
+     * @return List<PropertyResponse>
+     */
+    @GET
+    @Path("/all")
+    @NotNull
+    @Operation(
+            summary = "Get all properties",
+            description = "Returns all properties in the system for public browsing."
+    )
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "List of all properties",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PropertyResponse.class, type = SchemaType.ARRAY),
+                            examples = @ExampleObject(
+                                    name = "AllPropertiesList",
+                                    value = "[{\"id\":1,\"name\":\"Sunset Villa\",\"description\":\"Beachfront property\",\"tags\":[],\"propertyGroupId\":1}]"
+                            )
+                    )
+            ),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
+    public List<PropertyResponse> getAll() {
+        return propertyService.getAllProperties();
+    }
+
+    /**
+     * Get properties for user.
+     *
      * @param userId user id
      * @return List<PropertyResponse>
      */

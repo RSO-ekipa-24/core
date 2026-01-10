@@ -6,11 +6,23 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.util.List;
+
 @ApplicationScoped
 public class PropertyRepository {
 
     @PersistenceContext
     EntityManager em;
+
+    /**
+     * Find all properties.
+     *
+     * @return List<Property>
+     */
+    @NotNull
+    public List<Property> listAll() {
+        return em.createQuery("SELECT p FROM Property p", Property.class).getResultList();
+    }
 
     /**
      * Find property by id.

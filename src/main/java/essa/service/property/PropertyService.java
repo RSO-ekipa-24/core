@@ -36,6 +36,18 @@ public class PropertyService {
     @Inject
     TagRepository tagRepository;
 
+    /**
+     * Get all properties in the system.
+     * Use this for public browsing or global listings.
+     *
+     * @return List of all PropertyResponse
+     */
+    @NotNull
+    public List<PropertyResponse> getAllProperties() {
+        return propertyRepository.listAll().stream()
+                .map(PropertyResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 
     /**
      * Get all properties.
