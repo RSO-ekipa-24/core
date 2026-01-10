@@ -81,6 +81,9 @@ spec:
             - name: QUARKUS_FLYWAY_REPAIR_AT_START
               value: "true"
 
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "myproperty-kafka-kafka-bootstrap:9092"
+
           # health checks
           startupProbe:
             httpGet:
