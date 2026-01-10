@@ -48,7 +48,6 @@ public class PropertyResource {
      */
     @GET
     @Path("/all")
-    @PermitAll
     @NotNull
     @Operation(
             summary = "Get all properties",
