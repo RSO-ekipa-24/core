@@ -1,4 +1,28 @@
-# core
+# Core 
+
+## Overview
+
+This service serves as the main backbone of backend. 
+
+### Branching Strategy
+
+- main: The production-ready branch.
+- dev: The integration branch for features and fixes, often considered the "next release" branch.
+- feature/: Branches for developing new features. These branches are created from dev and merged back into dev when the feature is complete.
+- bugfix/: Branches for fixing bugs in the dev branch.
+- release/: Branches for preparing a new production release. These branches allow for last-minute fixes and preparing release notes.
+- hotfix/: Branches for fixing critical issues in the main branch. These are created from main and merged back into both main and dev.
+
+## Technology stack :computer:
+
+| Category                  | Technology / Tool |
+|----------------------------|-------------------|
+| Backend framework          | Quarkus (Java)    |
+| Messaging / Event streaming| Apache Kafka      |
+| Build tool                 | Maven             |
+| Containerization           | Docker            |
+| CI/CD Automation           | GitHub Actions    |
+
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
@@ -65,15 +89,6 @@ Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
 
-## Branching Strategy
-
-- main: The production-ready branch.
-- dev: The integration branch for features and fixes, often considered the "next release" branch.
-- feature/: Branches for developing new features. These branches are created from dev and merged back into dev when the feature is complete.
-- bugfix/: Branches for fixing bugs in the dev branch.
-- release/: Branches for preparing a new production release. These branches allow for last-minute fixes and preparing release notes.
-- hotfix/: Branches for fixing critical issues in the main branch. These are created from main and merged back into both main and dev.
-
 ## How to run this shi - simplified
 
 - Clone this.
@@ -86,8 +101,6 @@ Easily start your REST Web Services
 
 - There is a POST endpoint at http://localhost:6969/users/, which is to only be called once for every user when you want to register them on core. It requires no body, just a keycloak bearer token.
 - For information on other endpoints (what they require, what they return) we need to have a space to document them all. Find one and contact me so I can write it there, I dont think that belongs here.
-
-Yours truly, Antišek.
 
 ---
 
@@ -148,3 +161,14 @@ docker build -f src/main/docker/Dockerfile.jvm -t europe-central2-docker.pkg.dev
 ```bash
 docker push europe-central2-docker.pkg.dev/artful-reactor-351917/essa-images/core-service:$GIT_HASH
 ```
+
+#### Deploy via helm chart :arrow_up:
+
+Move to `core/deploy/k8s/charts` and run:
+
+```bash
+helm upgrade --install notifications-release ./core-chart --set core.deployment.image.tag=$GIT_HASH
+```
+
+---
+
