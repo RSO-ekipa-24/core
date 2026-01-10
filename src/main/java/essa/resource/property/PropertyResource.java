@@ -6,6 +6,7 @@ import essa.dto.property.PropertyUpdateRequest;
 import essa.service.property.PropertyService;
 import essa.service.user.UserService;
 import io.smallrye.common.constraint.NotNull;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -47,6 +48,7 @@ public class PropertyResource {
      */
     @GET
     @Path("/all")
+    @PermitAll
     @NotNull
     @Operation(
             summary = "Get all properties",
