@@ -9,6 +9,8 @@ import essa.keycloak.KeycloakUserResponse;
 import essa.service.property.PropertyService;
 import essa.service.propertygroup.PropertyGroupService;
 import essa.service.user.UserService;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -37,6 +39,8 @@ import java.util.List;
 @SecurityRequirement(name = "BearerAuth")
 public class UserResource {
 
+    private static final String METRIC_PREFIX = "essa.users";
+
     @Inject
     UserService userService;
 
@@ -63,6 +67,8 @@ public class UserResource {
      */
     @GET
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".get.time", description = "Time spent returning authenticated user")
+    @Counted(value = METRIC_PREFIX + ".get.count", description = "Number of calls to get authenticated user")
     @Operation(
             summary = "Get authenticated user",
             description = "Returns the user for the provided access token (subject)."
@@ -98,6 +104,8 @@ public class UserResource {
     @POST
     @Path("/authenticate")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".authenticate.time", description = "Time spent authenticating/registering user")
+    @Counted(value = METRIC_PREFIX + ".authenticate.count", description = "Number of calls to authenticate/register user")
     @Operation(
             summary = "Authenticate/register user",
             description = "Registers the user in the application database if missing and returns the user. Uses token claims (subject, preferred_username, email)."
@@ -171,6 +179,8 @@ public class UserResource {
      * Delete user by id (SHOULD BE CALLED BEFORE DELETING ON KEYCLOAK).
      */
     @DELETE
+    @Timed(value = METRIC_PREFIX + ".delete.time", description = "Time spent deleting authenticated user")
+    @Counted(value = METRIC_PREFIX + ".delete.count", description = "Number of calls to delete authenticated user")
     @Operation(
             summary = "Delete authenticated user",
             description = "Deletes the authenticated user from the application database (should be called before deleting the user in Keycloak)."
@@ -194,6 +204,8 @@ public class UserResource {
     @GET
     @Path("/property-groups")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getUserPropertyGroups.time", description = "Time spent returning authenticated user's property groups")
+    @Counted(value = METRIC_PREFIX + ".getUserPropertyGroups.count", description = "Number of calls to get authenticated user's property groups")
     @Operation(
             summary = "Get authenticated user's property groups",
             description = "Returns all property groups for the authenticated user."
@@ -227,6 +239,8 @@ public class UserResource {
     @GET
     @Path("/properties")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getUserProperties.time", description = "Time spent returning authenticated user's properties")
+    @Counted(value = METRIC_PREFIX + ".getUserProperties.count", description = "Number of calls to get authenticated user's properties")
     @Operation(
             summary = "Get authenticated user's properties",
             description = "Returns all properties for the authenticated user."
@@ -256,6 +270,8 @@ public class UserResource {
     @GET
     @Path("/keycloak/{username}")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getKeycloakUser.time", description = "Time spent fetching Keycloak user by username (testing)")
+    @Counted(value = METRIC_PREFIX + ".getKeycloakUser.count", description = "Number of calls to fetch Keycloak user by username (testing)")
     @Operation(
             summary = "Get Keycloak user by username (testing)",
             description = "Testing endpoint that queries Keycloak for a user by username."
@@ -283,6 +299,8 @@ public class UserResource {
 
     @GET
     @Path("/me")
+    @Timed(value = METRIC_PREFIX + ".getCurrentUser.time", description = "Time spent returning current Keycloak user via admin client")
+    @Counted(value = METRIC_PREFIX + ".getCurrentUser.count", description = "Number of calls to return current Keycloak user via admin client")
     @Operation(
             summary = "Get current Keycloak user (admin client)",
             description = "Returns the current user from Keycloak using the Keycloak admin client."

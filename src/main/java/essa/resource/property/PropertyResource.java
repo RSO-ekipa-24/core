@@ -5,8 +5,9 @@ import essa.dto.property.PropertyResponse;
 import essa.dto.property.PropertyUpdateRequest;
 import essa.service.property.PropertyService;
 import essa.service.user.UserService;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.common.constraint.NotNull;
-import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -30,6 +31,8 @@ import java.util.List;
 @SecurityRequirement(name = "BearerAuth")
 public class PropertyResource {
 
+    private static final String METRIC_PREFIX = "essa.properties";
+
     private final PropertyService propertyService;
     private final UserService userService;
 
@@ -49,6 +52,8 @@ public class PropertyResource {
     @GET
     @Path("/all")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getAll.time", description = "Time spent returning all properties")
+    @Counted(value = METRIC_PREFIX + ".getAll.count", description = "Number of calls to get all properties")
     @Operation(
             summary = "Get all properties",
             description = "Returns all properties in the system for public browsing."
@@ -81,6 +86,8 @@ public class PropertyResource {
     @GET
     @Path("/{userId}")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getUserProperties.time", description = "Time spent returning properties for a user")
+    @Counted(value = METRIC_PREFIX + ".getUserProperties.count", description = "Number of calls to get properties for a user")
     @Operation(
             summary = "Get all properties for a user",
             description = "Returns all properties owned by the given user."
@@ -118,6 +125,8 @@ public class PropertyResource {
      */
     @GET
     @Path("/tag/{tagName}")
+    @Timed(value = METRIC_PREFIX + ".getPropertiesByTag.time", description = "Time spent returning properties by tag")
+    @Counted(value = METRIC_PREFIX + ".getPropertiesByTag.count", description = "Number of calls to get properties by tag")
     @Operation(
             summary = "Get properties by tag",
             description = "Returns properties for the authenticated user filtered by tag name."
@@ -157,6 +166,8 @@ public class PropertyResource {
     @GET
     @Path("/property/{id}")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getById.time", description = "Time spent returning property by id")
+    @Counted(value = METRIC_PREFIX + ".getById.count", description = "Number of calls to get property by id")
     @Operation(
             summary = "Get property by id",
             description = "Returns a single property by id for the authenticated user."
@@ -195,6 +206,8 @@ public class PropertyResource {
      */
     @POST
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".create.time", description = "Time spent creating a property")
+    @Counted(value = METRIC_PREFIX + ".create.count", description = "Number of calls to create a property")
     @Operation(
             summary = "Create property",
             description = "Creates a new property for the authenticated user."
@@ -245,6 +258,8 @@ public class PropertyResource {
      */
     @PUT
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".update.time", description = "Time spent updating a property")
+    @Counted(value = METRIC_PREFIX + ".update.count", description = "Number of calls to update a property")
     @Operation(
             summary = "Update property",
             description = "Updates an existing property for the authenticated user."
@@ -295,6 +310,8 @@ public class PropertyResource {
      */
     @DELETE
     @Path("/{id}")
+    @Timed(value = METRIC_PREFIX + ".delete.time", description = "Time spent deleting a property")
+    @Counted(value = METRIC_PREFIX + ".delete.count", description = "Number of calls to delete a property")
     @Operation(
             summary = "Delete property",
             description = "Deletes a property by id for the authenticated user."

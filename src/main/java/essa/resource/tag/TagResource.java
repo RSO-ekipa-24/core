@@ -5,6 +5,8 @@ import essa.dto.tag.TagResponse;
 import essa.dto.tag.TagUpdateRequest;
 import essa.service.tag.TagService;
 import essa.service.user.UserService;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -29,6 +31,8 @@ import java.util.List;
 @SecurityRequirement(name = "BearerAuth")
 public class TagResource {
 
+    private static final String METRIC_PREFIX = "essa.tags";
+
     @Inject
     TagService tagService;
 
@@ -44,6 +48,8 @@ public class TagResource {
      * @return List<TagResponse>
      */
     @GET
+    @Timed(value = METRIC_PREFIX + ".list.time", description = "Time spent listing tags")
+    @Counted(value = METRIC_PREFIX + ".list.count", description = "Number of calls to list tags")
     @Operation(
             summary = "List tags",
             description = "Returns all tags for the authenticated user."
@@ -73,6 +79,8 @@ public class TagResource {
      * @return TagResponse
      */
     @POST
+    @Timed(value = METRIC_PREFIX + ".create.time", description = "Time spent creating a tag")
+    @Counted(value = METRIC_PREFIX + ".create.count", description = "Number of calls to create a tag")
     @Operation(
             summary = "Create tag",
             description = "Creates a new tag for the authenticated user."
@@ -121,6 +129,8 @@ public class TagResource {
      * @return TagResponse
      */
     @PUT
+    @Timed(value = METRIC_PREFIX + ".update.time", description = "Time spent updating a tag")
+    @Counted(value = METRIC_PREFIX + ".update.count", description = "Number of calls to update a tag")
     @Operation(
             summary = "Update tag",
             description = "Updates an existing tag for the authenticated user."
@@ -171,6 +181,8 @@ public class TagResource {
      */
     @DELETE
     @Path("/{id}")
+    @Timed(value = METRIC_PREFIX + ".delete.time", description = "Time spent deleting a tag")
+    @Counted(value = METRIC_PREFIX + ".delete.count", description = "Number of calls to delete a tag")
     @Operation(
             summary = "Delete tag",
             description = "Deletes a tag by id for the authenticated user."

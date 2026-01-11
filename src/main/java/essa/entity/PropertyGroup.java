@@ -4,6 +4,7 @@ import io.smallrye.common.constraint.NotNull;
 import io.smallrye.common.constraint.Nullable;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,7 +19,7 @@ public class PropertyGroup extends BaseEntity {
     private String name;
 
     @OneToMany(mappedBy = "propertyGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Property> properties;
+    private List<Property> properties = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id_fk")
@@ -48,7 +49,7 @@ public class PropertyGroup extends BaseEntity {
         }
     }
 
-    @Nullable
+    @NotNull
     public List<Property> getProperties() {
         return properties;
     }

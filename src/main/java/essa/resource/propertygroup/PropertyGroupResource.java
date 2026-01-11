@@ -6,6 +6,8 @@ import essa.dto.propertygroup.PropertyGroupResponse;
 import essa.dto.propertygroup.PropertyGroupUpdateRequest;
 import essa.service.propertygroup.PropertyGroupService;
 import essa.service.user.UserService;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,6 +32,8 @@ import java.util.List;
 @SecurityRequirement(name = "BearerAuth")
 public class PropertyGroupResource {
 
+    private static final String METRIC_PREFIX = "essa.propertyGroups";
+
     private final PropertyGroupService propertyGroupService;
     private final UserService userService;
 
@@ -50,6 +54,8 @@ public class PropertyGroupResource {
     @GET
     @Path("/for-user/{userId}")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getUserPropertyGroups.time", description = "Time spent returning property groups for a user")
+    @Counted(value = METRIC_PREFIX + ".getUserPropertyGroups.count", description = "Number of calls to get property groups for a user")
     @Operation(
             summary = "Get all property groups for a user",
             description = "Returns all property groups owned by the given user."
@@ -84,6 +90,8 @@ public class PropertyGroupResource {
     @GET
     @Path("/{id}/properties")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getPropertiesOfGroup.time", description = "Time spent returning properties of a group")
+    @Counted(value = METRIC_PREFIX + ".getPropertiesOfGroup.count", description = "Number of calls to get properties of a group")
     @Operation(
             summary = "Get properties of a property group",
             description = "Returns all properties belonging to the given property group for the authenticated user."
@@ -119,6 +127,8 @@ public class PropertyGroupResource {
     @GET
     @Path("/{id}")
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".getById.time", description = "Time spent returning property group by id")
+    @Counted(value = METRIC_PREFIX + ".getById.count", description = "Number of calls to get property group by id")
     @Operation(
             summary = "Get property group by id",
             description = "Returns a single property group by id for the authenticated user."
@@ -153,6 +163,8 @@ public class PropertyGroupResource {
      */
     @POST
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".create.time", description = "Time spent creating a property group")
+    @Counted(value = METRIC_PREFIX + ".create.count", description = "Number of calls to create a property group")
     @Operation(
             summary = "Create property group",
             description = "Creates a new property group for the authenticated user."
@@ -203,6 +215,8 @@ public class PropertyGroupResource {
      */
     @PUT
     @NotNull
+    @Timed(value = METRIC_PREFIX + ".update.time", description = "Time spent updating a property group")
+    @Counted(value = METRIC_PREFIX + ".update.count", description = "Number of calls to update a property group")
     @Operation(
             summary = "Update property group",
             description = "Updates an existing property group for the authenticated user."
@@ -253,6 +267,8 @@ public class PropertyGroupResource {
      */
     @DELETE
     @Path("/{id}")
+    @Timed(value = METRIC_PREFIX + ".delete.time", description = "Time spent deleting a property group")
+    @Counted(value = METRIC_PREFIX + ".delete.count", description = "Number of calls to delete a property group")
     @Operation(
             summary = "Delete property group",
             description = "Deletes a property group by id for the authenticated user."
